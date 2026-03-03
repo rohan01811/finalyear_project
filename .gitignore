@@ -1,7 +1,2 @@
 .env
-<<<<<<< HEAD
-=======
-venv
-node_modules
-
->>>>>>> 2e7369a (first)
+node_modules/

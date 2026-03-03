@@ -2,12 +2,13 @@ import React from "react";
 import Video from './components/video';
 import { useRef , useState } from "react";
 import "./interview_page.css"
-import { NavLink } from "react-router-dom";
+import { NavLink,useParams  } from "react-router-dom";
 import Backtbtn from "./back";
 
 
 const Interview = () => {
-
+     const { sessionId } = useParams();
+    console.log("Session ID:", sessionId);
     const ws = useRef(null);
     const recognition = useRef(null);
     
@@ -48,7 +49,9 @@ const Interview = () => {
 
         if (!ws.current || ws.current.readyState === WebSocket.CLOSED) {
 
-            ws.current = new WebSocket(`ws://127.0.0.1:8000/interview`);
+ws.current = new WebSocket(
+  `ws://127.0.0.1:8000/api/interview/interview?session_id=${sessionId}`
+);
             console.log("Connnecte to websocket 1")
         }
         ws.current.onopen = () => console.log("Connected to interview WebSocket");
@@ -82,7 +85,7 @@ const Interview = () => {
                 <NavLink to="/interviewForm"><Backtbtn /></NavLink>
             </div>
             <div className="interviewInstruction">
-                <p>1. Press Reddy to start interview and end session to end the session</p>
+                <p>1. Press Ready to start interview and end session to end the session</p>
                 <p>2. Response depends on internet speed and may take minutes in some cases</p>
             </div>
                 <h1>Real Time Interview with face analysis</h1>           
@@ -91,7 +94,7 @@ const Interview = () => {
             </div>
             
             <div className="buttons">
-                <button onClick={handleStartInterview}>Reddy</button>            
+                <button onClick={handleStartInterview}>Ready</button>            
                 <NavLink to="/interviewForm"><button onClick={endSession}>End Session</button></NavLink>
             </div>            
         </div>

@@ -31,37 +31,32 @@ function InterviewForm() {
             .catch((error) => console.error("Failed to extract text from PDF", error));
     }
 
-    async function handleSubmit() {
-        if (!resume.trim()) {
-            console.error("No resume data to send");
-            return;
-        }
+async function handleSubmit() {
+  try {
+    const response = await fetch("http://localhost:8000/api/interview/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        role,
+        job_description: description,
+        jobType: type,
+        experience,
+        interview_type: interviewType
+      })
+    });
 
-        try {
-            const response = await fetch('http://jobreadyprofastapi.ap-south-1.elasticbeanstalk.com/resume', {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    resume_dt: resume,
-                    job_description: description,
-                    jobType: type,
-                    role: role,
-                    experience: experience,
-                    interview_type : interviewType
-                }),
-            });
+    const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error("Failed to send data");
-            }
+    if (!response.ok) throw new Error("Failed to create session");
 
-            console.log("Resume sent successfully!");
-        } catch (error) {
-            console.error("Error sending resume:", error);
-        }
-    }
+    // navigate with session id
+    window.location.href = `/interview/${data.session_id}`;
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
     const [vantaEffect, setVantaEffect] = useState(0);
     const vantaRef = useRef(null);
 
@@ -150,16 +145,17 @@ function InterviewForm() {
                         </select>                    
                     </div>
 
-                    <div className="resume centre">
+                    {/* <div className="resume centre">
                         <label>Upload Resume (PDF):</label>
                         <input type="file" ref={resumeRef} accept="application/pdf" onChange={extractText} />
-                    </div>
+                    </div> */}
                     
                 </div>
             </div>
-            <div className="button">
-                <NavLink onClick={handleSubmit} to="/interview"><button>Start</button></NavLink>
-            </div>
+       <div className="button">
+  <button onClick={handleSubmit}>Start</button>
+</div>
+
 
 
 

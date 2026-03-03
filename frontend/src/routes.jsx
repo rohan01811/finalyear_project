@@ -14,12 +14,12 @@ function Route_page() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/interview" element={<Interview />} />
-
+        
         
             <Route path="/interviewForm" element={<PrivateRoute redirectTo="/login"><InterviewForm /></PrivateRoute>} />
         
-        
+                 <Route path="/interview/:sessionId" element={<Interview />} />
+
             <Route path="/atsChecking" element={<PrivateRoute redirectTo="/login"><Ats /></PrivateRoute>} />
        
 

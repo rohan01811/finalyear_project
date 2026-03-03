@@ -21,31 +21,34 @@ function Ats() {
     function handleDescription(e) {
         setDescription(e.target.value)
     }
-    async function sendData(prompt) {
-        if(resume == null){
-            setResult("Please upload resume")
-            return
-        }
-        if(description == null){
-            setResult("Please provide description")
-            return
-        }
-        setResult("Your response is being generated...")
-        const formdata = new FormData()
-        formdata.append("ATSdescription", description)
-        formdata.append("prompt_number", prompt)
-        formdata.append("file", resume)        
 
-        await axios.post('http://127.0.0.1:8000/get_resume_file', formdata, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        }
-        )
-        const response = await axios.post('http://127.0.0.1:8000/ats_response')
-        setResult(response.data)
-
+    
+async function sendData(prompt) {
+    if (resume == null) {
+        setResult("Please upload resume")
+        return
     }
+    if (description == null) {
+        setResult("Please provide description")
+        return
+    }
+
+    setResult("Your response is being generated...")
+
+    const formdata = new FormData()
+    formdata.append("ATSdescription", description)
+    formdata.append("prompt_number", prompt)
+    formdata.append("file", resume)
+
+    // ✅ Correct endpoint
+    await axios.post('http://127.0.0.1:8000/ats/upload', formdata)
+
+    // ✅ Correct endpoint
+    const response = await axios.post('http://127.0.0.1:8000/ats/analyze')
+
+    setResult(response.data.result)   // because backend returns { status, result }
+}
+
     return (
         <div className="ats">
             <div className="headers_ats_page">

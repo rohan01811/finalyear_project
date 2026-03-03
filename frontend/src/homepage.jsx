@@ -55,7 +55,7 @@ function Home() {
             </div>
 
             <div className="heading">
-                <h1>JobReady Pro</h1>
+                <h1>Hire AI</h1>
             </div>
             <h3> AI-Powered solutions for Career Success!🚀 </h3>
 

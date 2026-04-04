@@ -1,3 +1,4 @@
+// backend-nodejs/src/routes/auth.js
 const model = require("../config.js")
 const bcrypt = require("bcrypt")
 const express = require("express")

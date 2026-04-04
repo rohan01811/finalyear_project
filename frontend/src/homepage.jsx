@@ -4,9 +4,11 @@ import * as THREE from "three";
 import { useEffect, useRef, useState } from "react";
 import "./homepage.css"
 import { NavLink } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
 function Home() {
     const [vantaEffect, setVantaEffect] = useState(0);
+    const navigate = useNavigate();
+
     const vantaRef = useRef(null);
     useEffect(() => {
         if (!vantaEffect) {
@@ -33,18 +35,36 @@ function Home() {
             if (vantaEffect) vantaEffect.destroy();
         };
     }, [vantaEffect]);
-    const userName = localStorage.getItem("jobreadypro-username");
 
+const userProfile = JSON.parse(localStorage.getItem("userProfile"));
+const userName = userProfile?.name; 
+
+const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userProfile"); // ✅ important
+    navigate("/");
+};
     return (
         <div ref={vantaRef} className="home">
             <div className="navbar">
-                {userName ? (
-                    <span className="welcom-home">Welcome, {userName} </span>
-                ) : (
+               {userName ? (
+    <>
+        <span className="welcom-home">Welcome, {userName}</span>
+        <button className="nav-btn" onClick={handleLogout}>
+            Logout
+        </button>
+    </>
+) : (  
                     <>
-                        <NavLink to="/login">
-                            <button className="nav-btn">Login</button>
-                        </NavLink>
+<div className="loginInputs">
+  <label>Login As :</label>
+  <select value={role} onChange={(e) => setRole(e.target.value)}>
+    <option value="candidate">Candidate</option>
+    <option value="hr">HR</option>
+  </select>
+</div>
+                        {/* create dropbox which has options like login as candidate and login as HR */}
                         <NavLink to="/signup">
                             <button className="nav-btn">Signup</button>
                         </NavLink>

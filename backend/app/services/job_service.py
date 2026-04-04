@@ -1,4 +1,4 @@
-# app/services/job_service.py
+# jobreadypro/backend/app/services/job_service.py
 
 import requests
 from requests.adapters import HTTPAdapter

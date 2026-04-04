@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import "./signup.css"
 import Backtbtn from "./back";
 import { NavLink } from "react-router-dom";
@@ -9,31 +10,33 @@ function Signup() {
 
   const [userEmail, setEmail] = useState("");
   const [userPassword, setPassword] = useState("");
+  const [userRole, setRole] = useState("");
+
   const navigate = useNavigate();
 
-  const handleSignup = async () => {
-    const res = await fetch("http://jobreadypro.ap-south-1.elasticbeanstalk.com/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: userName, email: userEmail, password: userPassword }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      alert("SignUp successfull! Details are sent to your mail. Please Login to continue");
+const handleSignup = async () => {
+  const res = await fetch("http://127.0.0.1:8000/auth/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: userName,
+      email: userEmail,
+      password: userPassword,
+       role: userRole  
 
-      const intendedRoute = localStorage.getItem('intendedRoute');
+    }),
+  });
 
-      if (intendedRoute) {
-        localStorage.setItem('redirectAfterLogin', intendedRoute);
-        localStorage.removeItem('intendedRoute');
-      }
+  const data = await res.json();
 
-      navigate("/login");
+  if (res.ok) {
+    alert("Signup successful 🚀 Please login");
 
-    } else {
-      alert(data.message);
-    }
-  };
+    navigate("/");
+  } else {
+    alert(data.detail || "Signup failed");
+  }
+};
 
   return (
     <div>
@@ -57,10 +60,24 @@ function Signup() {
             <input value={userEmail} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
           </div>
 
+
+
+          <div className="signup-inputs">
+            <label htmlFor="">Role : </label>
+            <select value={userRole} onChange={(e) => setRole(e.target.value)}>
+              <option value="">Select Role</option>
+              <option value="candidate">Candidate</option>
+              <option value="HR">HR</option>
+            </select>
+          </div>
+
+
           <div className="signup-inputs">
             <label htmlFor="">password : </label>
             <input type="password" value={userPassword} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
           </div>
+
+
 
           <div className="signup-btn">
             <button onClick={handleSignup}>Sign UP</button>

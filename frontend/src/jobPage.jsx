@@ -11,6 +11,43 @@ function Jobs() {
     const [loading, setLoading] = useState(false);
     const [uploadedFile, setUploadedFile] = useState(null);
 
+const handleApply = async (job) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const jobId = job.job_apply_link.split("/").pop(); // extract id
+
+    const res = await axios.post(
+      `http://127.0.0.1:8000/jobs/apply?job_id=${jobId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    alert(res.data.message);
+
+    // still store locally for UI
+    let appliedJobs = JSON.parse(localStorage.getItem("appliedJobs")) || [];
+    appliedJobs.push(job);
+    localStorage.setItem("appliedJobs", JSON.stringify(appliedJobs));
+
+  } catch (error) {
+    console.error(error);
+    alert("Application failed ❌");
+  }
+};
+
+const isApplied = (job) => {
+  let appliedJobs = JSON.parse(localStorage.getItem("appliedJobs")) || [];
+
+  return appliedJobs.some(
+    (j) => j.job_apply_link === job.job_apply_link
+  );
+};
+
     async function sendResume(event) {
         const file = event.target.files[0];
         
@@ -150,19 +187,24 @@ function Jobs() {
             }}>
                 {jobs.map((job, index) => (
                     <div
-                        key={index}
-                        style={{
-                            backgroundColor: '#2a2a2a',
-                            borderRadius: '20px',
-                            padding: '20px',
-                            minHeight: '300px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
-                            transition: 'transform 0.2s',
-                            border: '1px solid #444'
-                        }}
-                    >
+    key={index}
+    style={{
+        background: job.source === "internal"
+            ? 'linear-gradient(135deg, #0d47a1, #1a1a1a)'
+            : '#2a2a2a',
+        borderRadius: '20px',
+        padding: '20px',
+        minHeight: '300px',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: job.source === "internal"
+            ? '0 0 15px rgba(33,150,243,0.7)'
+            : '0 4px 6px rgba(0,0,0,0.3)',
+        border: job.source === "internal"
+            ? '2px solid #2196F3'
+            : '1px solid #444'
+    }}
+>
                         <div style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -201,6 +243,19 @@ function Jobs() {
                             >
                                 {job.employer_name || 'Company'}
                             </a>
+
+                            {job.source === "internal" && (
+    <div style={{
+        background: "#2196F3",
+        padding: "5px 10px",
+        borderRadius: "10px",
+        fontSize: "12px",
+        marginBottom: "10px",
+        width: "fit-content"
+    }}>
+        🔥 Our Platform Job ({job.match_score}% match)
+    </div>
+)}
                         </div>
 
                         <p style={{ marginBottom: '10px', fontSize: '1rem' }}>
@@ -219,32 +274,58 @@ function Jobs() {
                             </p>
                         )}
 
-                        <div style={{ marginTop: 'auto', paddingTop: '15px' }}>
-                            <a
-                                href={job.job_apply_link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{ textDecoration: 'none' }}
-                            >
-                                <button style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    backgroundColor: '#4CAF50',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    fontSize: '1rem',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer',
-                                    transition: 'background-color 0.2s'
-                                }}
-                                onMouseEnter={(e) => e.target.style.backgroundColor = '#45a049'}
-                                onMouseLeave={(e) => e.target.style.backgroundColor = '#4CAF50'}
-                                >
-                                    Apply Now →
-                                </button>
-                            </a>
-                        </div>
+                       <div style={{ marginTop: 'auto', paddingTop: '15px' }}>
+    {job.source === "internal" ? (
+        isApplied(job) ? (
+            <button style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: 'gray',
+                color: 'white',
+                borderRadius: '8px',
+                border: 'none'
+            }}>
+                Applied ✅
+            </button>
+        ) : (
+            <button
+                onClick={() => handleApply(job)}
+                style={{
+                    width: '100%',
+                    padding: '12px',
+                    backgroundColor: '#FF9800',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                }}
+            >
+                Apply (Our Platform)
+            </button>
+        )
+    ) : (
+        <a
+            href={job.job_apply_link}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ textDecoration: 'none' }}
+        >
+            <button style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: '#4CAF50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+            }}>
+                Apply Now →
+            </button>
+        </a>
+    )}
+</div>
                     </div>
                 ))}
             </div>

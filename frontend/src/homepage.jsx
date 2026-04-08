@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 function Home() {
     const [vantaEffect, setVantaEffect] = useState(0);
     const navigate = useNavigate();
+    const [role, setRole] = useState("candidate"); // default to candidate
 
     const vantaRef = useRef(null);
     useEffect(() => {
@@ -47,32 +48,38 @@ const handleLogout = () => {
 };
     return (
         <div ref={vantaRef} className="home">
-            <div className="navbar">
-               {userName ? (
-    <>
-        <span className="welcom-home">Welcome, {userName}</span>
-        <button className="nav-btn" onClick={handleLogout}>
-            Logout
-        </button>
-    </>
-) : (  
-                    <>
-<div className="loginInputs">
-  <label>Login As :</label>
-  <select value={role} onChange={(e) => setRole(e.target.value)}>
-    <option value="candidate">Candidate</option>
-    <option value="hr">HR</option>
-  </select>
-</div>
-                        {/* create dropbox which has options like login as candidate and login as HR */}
-                        <NavLink to="/signup">
-                            <button className="nav-btn">Signup</button>
-                        </NavLink>
-                    </>
-                )}
+<div className="navbar">
+    {userName ? (
+        <>
+            <span className="welcom-home">Welcome, {userName}</span>
 
+            <div className="nav-right">
+                <button
+                    className="nav-btn secondary"
+                    onClick={() => navigate("/notifications")}
+                >
+                    Notifications
+                </button>
 
+                <button
+                    className="nav-btn danger"
+                    onClick={handleLogout}
+                >
+                    Logout
+                </button>
             </div>
+        </>
+    ) : (
+        <div className="nav-right">
+            <NavLink to="/login">
+                <button className="nav-btn primary">Login</button>
+            </NavLink>
+            <NavLink to="/signup">
+                <button className="nav-btn primary">Signup</button>
+            </NavLink>
+        </div>
+    )}
+</div>
 
             <div className="heading">
                 <h1>Hire AI</h1>
@@ -80,7 +87,7 @@ const handleLogout = () => {
             <h3> AI-Powered solutions for Career Success!🚀 </h3>
 
             <div className="buttons_home">
-                <NavLink to="/interviewForm"><button>Interview Practice</button></NavLink>
+                <NavLink to="/applications"><button>Application History</button></NavLink>
                 <NavLink to="/atsChecking"><button>Resume Analysis</button></NavLink>
                 <NavLink to="/jobs"><button>Jobs Search</button></NavLink>
             </div>

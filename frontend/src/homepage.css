@@ -34,7 +34,7 @@ h3{
    gap: 25px;
 }
 
-.nav-btn{
+/* .nav-btn{
     position: relative;
     left: 85vw;
 
@@ -45,6 +45,23 @@ h3{
 
 .nav-btn:hover {
     background-color: white;
+} */
+
+.navbar {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    padding: 20px 40px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    }
+
+.nav-right {
+    display: flex;
+    padding-right: 90px;
+    gap: 20px;
 }
 
 .welcom-home{
@@ -87,6 +104,7 @@ h3{
   width: 100%;
   padding: 10px;
   border: none;
+  /* padding-right: 20px; */
   background: none;
   color: white;
   text-align: left;

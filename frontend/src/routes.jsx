@@ -8,7 +8,8 @@ import Jobs from "./jobPage";
 import PrivateRoute from "./privateRoute";
 import Login from "./login";
 import Signup from "./signup";
-
+import ApplicationHis from "./ApplicationHis";
+import Notifications from "./Notifications";
 function Route_page() {
   return (
     <Router>
@@ -28,7 +29,8 @@ function Route_page() {
         
         <Route path="/login" element = {<Login />} />
         <Route path="/signup" element = {<Signup />} />
-
+        <Route path="/applications" element = {<ApplicationHis />} />
+        <Route path="/notifications" element = {<Notifications />} />
       </Routes>
     </Router>
   );

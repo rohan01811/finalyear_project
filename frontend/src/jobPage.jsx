@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
 
@@ -10,6 +10,30 @@ function Jobs() {
     const [isJobs, setIsJobs] = useState("");
     const [loading, setLoading] = useState(false);
     const [uploadedFile, setUploadedFile] = useState(null);
+const [appliedJobs, setAppliedJobs] = useState([]);
+
+useEffect(() => {
+  const fetchAppliedJobs = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        "http://127.0.0.1:8000/jobs/my-applications",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      setAppliedJobs(res.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch applied jobs", error);
+    }
+  };
+
+  fetchAppliedJobs();
+}, []);
 
 const handleApply = async (job) => {
   try {
@@ -30,10 +54,7 @@ const handleApply = async (job) => {
     alert(res.data.message);
 
     // still store locally for UI
-    let appliedJobs = JSON.parse(localStorage.getItem("appliedJobs")) || [];
-    appliedJobs.push(job);
-    localStorage.setItem("appliedJobs", JSON.stringify(appliedJobs));
-
+ setAppliedJobs(prev => [...prev, { jobs: { id: jobId } }]);
   } catch (error) {
     console.error(error);
     alert("Application failed ❌");
@@ -41,10 +62,8 @@ const handleApply = async (job) => {
 };
 
 const isApplied = (job) => {
-  let appliedJobs = JSON.parse(localStorage.getItem("appliedJobs")) || [];
-
   return appliedJobs.some(
-    (j) => j.job_apply_link === job.job_apply_link
+    (app) => app.jobs.id === job.job_apply_link.split("/").pop()
   );
 };
 

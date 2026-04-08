@@ -20,8 +20,7 @@ const Video = () => {
     if (!sessionId) return;
 
     ws.current = new WebSocket(
-      `ws://127.0.0.1:8000/api/interview/video?session_id=${sessionId}
-`
+      `ws://127.0.0.1:8000/api/interview/video?session_id=${sessionId}`
     );
 
     ws.current.onopen = () => {
@@ -54,9 +53,11 @@ const Video = () => {
       setEmotion("Video connection closed");
     };
 
-    return () => {
-      if (ws.current) ws.current.close();
-    };
+   return () => {
+  if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+    ws.current.close();
+  }
+};
   }, [sessionId]);
 
   // ===============================
@@ -89,13 +90,15 @@ const Video = () => {
   // ===============================
   // CAPTURE FRAME EVERY 3 SECONDS
   // ===============================
-  useEffect(() => {
-    const interval = setInterval(() => {
-      captureImage();
-    }, 3000);
+useEffect(() => {
+  if (!ws.current) return;
 
-    return () => clearInterval(interval);
-  }, []);
+  const interval = setInterval(() => {
+    captureImage();
+  }, 3000);
+
+  return () => clearInterval(interval);
+}, [ws.current]);
 
   const captureImage = async () => {
     if (

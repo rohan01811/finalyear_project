@@ -133,4 +133,59 @@ async def apply_job(job_id: str, authorization: str = Header(...)):
         return {"message": "Application submitted 🚀"}
 
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))            
+        raise HTTPException(status_code=400, detail=str(e))  
+
+
+@router.get("/my-applications")
+async def get_my_applications(authorization: str = Header(None)):
+    try:
+        if not authorization:
+            raise HTTPException(status_code=401, detail="Token missing")
+
+        token = authorization.replace("Bearer ", "")
+
+        user = supabase.auth.get_user(token)
+
+        if not user or not user.user:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        candidate_id = user.user.id
+
+        response = supabase.table("applications") \
+            .select("""
+                id,
+                status,
+                uploaded_at,
+                jobs (
+                    id,
+                    title,
+                    description,
+                    company,
+                    job_type
+                )
+            """) \
+            .eq("candidate_id", candidate_id) \
+            .execute()
+
+        return {
+            "status": "success",
+            "data": response.data
+        }
+
+    except Exception as e:
+        print("ERROR:", str(e))   # 👈 ADD THIS
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.get("/{job_id}")
+async def get_job(job_id: str):
+    try:
+        res = supabase.table("jobs") \
+            .select("*") \
+            .eq("id", job_id) \
+            .single() \
+            .execute()
+
+        return res.data
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))    

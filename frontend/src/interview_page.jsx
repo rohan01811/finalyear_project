@@ -24,26 +24,74 @@ const Interview = () => {
         });
     };
 
-    const startListening = async () => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition.current = new SpeechRecognition();
-        recognition.current.continuous = false;
-        recognition.current.interimResults = false;
-        recognition.current.lang = "en-US";
-        await recognition.current.start();
+const startListening = () => {
+    const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
 
-        recognition.current.onresult = async (event) => {
-            const transcript = event.results[event.results.length - 1][0].transcript.trim();
-            console.log("Recognized:", transcript);
+    if (!SpeechRecognition) {
+        console.error("Speech recognition not supported");
+        return;
+    }
 
-            if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-              await  ws.current.send(transcript);
+    const recognitionInstance = new SpeechRecognition();
+    recognition.current = recognitionInstance;
+
+    recognitionInstance.continuous = true;
+    recognitionInstance.interimResults = true;
+    recognitionInstance.lang = "en-US";
+
+    let finalTranscript = "";
+    let silenceTimer;
+
+    recognitionInstance.start();
+
+    recognitionInstance.onresult = (event) => {
+        clearTimeout(silenceTimer);
+
+        let interimTranscript = "";
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+
+            if (event.results[i].isFinal) {
+                finalTranscript += transcript + " ";
             } else {
-                console.warn("WebSocket is not open. Could not send answer.");
+                interimTranscript += transcript;
             }
-        };
+        }
+
+        console.log("LIVE:", interimTranscript);
+
+        // ⏳ silence detection
+        silenceTimer = setTimeout(() => {
+            recognitionInstance.stop();
+        }, 3000);
     };
 
+    recognitionInstance.onend = () => {
+        const finalText = finalTranscript.trim() || "no answer";
+
+        console.log("FINAL ANSWER:", finalText);
+
+        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+            ws.current.send(finalText);
+        }
+
+        finalTranscript = "";
+    };
+
+    recognitionInstance.onerror = (err) => {
+        console.error("Speech error:", err);
+
+        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+            ws.current.send("no answer");
+        }
+    };
+};
+
+
+
+   
     //  Start Interview Function
     const handleStartInterview = async () => {
 
@@ -52,21 +100,23 @@ const Interview = () => {
 ws.current = new WebSocket(
   `ws://127.0.0.1:8000/api/interview/interview?session_id=${sessionId}`
 );
+ws.current.binaryType = "arraybuffer";  // 🔥 IMPORTANT
             console.log("Connnecte to websocket 1")
         }
         ws.current.onopen = () => console.log("Connected to interview WebSocket");
-        ws.current.onmessage = async (event) => {
-            const eventdata = event.data.trim();
-            if (responseType === 1) {
+ws.current.onmessage = async (event) => {
+    const audioBlob = new Blob([event.data], { type: "audio/mp3" });
+    const audioUrl = URL.createObjectURL(audioBlob);
 
-                await textToSpeech(eventdata);
-                setResponseType(0);
-                startListening();
-            } else {
-                await textToSpeech(eventdata);
-                setResponseType(1);
-            }
-        };
+    const audio = new Audio(audioUrl);
+    audio.play();
+
+    audio.onended = () => {
+    setTimeout(() => {
+        startListening();
+    }, 1000); // prevents overlap issues
+};
+};
     };
 
     function endSession(){
@@ -75,7 +125,6 @@ ws.current = new WebSocket(
             ws.current.close();
             console.log("WebSocket closed.");
         }
-        fetch("http://127.0.0.1:8000/clearData",{method : "POST"}).then("Data cleared sucessfully")
         
     }
 
@@ -95,7 +144,7 @@ ws.current = new WebSocket(
             
             <div className="buttons">
                 <button onClick={handleStartInterview}>Ready</button>            
-                <NavLink to="/interviewForm"><button onClick={endSession}>End Session</button></NavLink>
+                <NavLink to="/applications"><button onClick={endSession}>End Session</button></NavLink>
             </div>            
         </div>
     )

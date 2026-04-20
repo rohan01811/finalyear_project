@@ -1,10 +1,20 @@
 # backend/app/routers/auth_routes.py
 
+from urllib import response
+
+from urllib import response
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from supabase.lib.client_options import ClientOptions
+from supabase import create_client
 from config.supabase_client import supabase
+from config.supabase_client import SUPABASE_KEY, SUPABASE_URL, supabase
 from fastapi import Depends
+
+from pydantic import BaseModel
+
+
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -18,6 +28,29 @@ class SignupRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+def get_supabase():
+    return create_client(SUPABASE_URL, SUPABASE_KEY)    
+
+@router.post("/refresh")
+async def refresh_token(data: RefreshRequest):
+    try:
+        response = supabase.auth.refresh_session({
+                    "refresh_token": data.refresh_token
+                })
+
+        if not response.session:
+            raise HTTPException(status_code=401, detail="Refresh failed")
+
+        return {
+            "session": response.session
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=str(e))
 
 
 @router.post("/signup")
@@ -49,7 +82,7 @@ async def signup(data: SignupRequest):
 
         return {
             "message": "Signup successful",
-            "user_id": user_id
+            "user_id": user_id,
         }
 
     except Exception as e:
@@ -61,27 +94,32 @@ async def signup(data: SignupRequest):
 @router.post("/login")
 async def login(data: LoginRequest):
     try:
+        supabase = get_supabase()   # 🔥 new instance per request
+
         response = supabase.auth.sign_in_with_password({
-            "email": data.email,
-            "password": data.password
-        })
+                    "email": data.email,
+                    "password": data.password
+                })
 
         if not response.user:
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
         return {
             "message": "Login successful",
-            "access_token": response.session.access_token,
+            # "access_token": response.session.access_token,
+             "session": response.session,
             "user": response.user
         }
 
-    except Exception:
-        raise HTTPException(status_code=401, detail="Login failed")
+    except Exception as e:
+        print("LOGIN ERROR:", str(e))
+        raise HTTPException(status_code=401, detail=str(e))
     
 
 @router.get("/me/{user_id}")
 async def get_user(user_id: str):
     try:
+        supabase = get_supabase()
         response = supabase.table("users").select("*").eq("id", user_id).execute()
 
         if not response.data:

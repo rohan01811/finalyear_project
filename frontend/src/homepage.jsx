@@ -41,8 +41,8 @@ const userProfile = JSON.parse(localStorage.getItem("userProfile"));
 const userName = userProfile?.name; 
 
 const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem("session"); // ✅ critical for security
+
     localStorage.removeItem("userProfile"); // ✅ important
     navigate("/");
 };

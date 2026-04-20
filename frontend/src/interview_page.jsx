@@ -1,6 +1,6 @@
 import React from "react";
 import Video from './components/video';
-import { useRef , useState } from "react";
+import { useRef , useState,useEffect } from "react";
 import "./interview_page.css"
 import { NavLink,useParams  } from "react-router-dom";
 import Backtbtn from "./back";
@@ -8,12 +8,40 @@ import Backtbtn from "./back";
 
 const Interview = () => {
      const { sessionId } = useParams();
+     const [violations, setViolations] = useState(0);
+     const [popup, setPopup] = useState("");
+     const [isInterviewStarted, setIsInterviewStarted] = useState(false);
+const tabWarningShown = useRef(false);
+
     console.log("Session ID:", sessionId);
     const ws = useRef(null);
     const recognition = useRef(null);
     
     const [responseType, setResponseType] = useState(1); // 1: Expecting Question, 0: Expecting Response
 
+    useEffect(() => {
+ const handleVisibilityChange = () => {
+if (document.hidden && !tabWarningShown.current && isInterviewStarted) {    triggerWarning("Tab switch detected");
+    tabWarningShown.current = true;
+  }
+};
+
+  
+
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+
+  return () => {
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+  };
+}, []);
+
+const showPopup = (message) => {
+  setPopup(message);
+
+  setTimeout(() => {
+    setPopup("");
+  }, 3000); // auto hide
+};
 
     const textToSpeech = (text) => {
         return new Promise((resolve, reject) => {
@@ -90,11 +118,13 @@ const startListening = () => {
 };
 
 
-
+   
    
     //  Start Interview Function
     const handleStartInterview = async () => {
-
+  setIsInterviewStarted(true);   // ✅ start proctoring
+   
+  console.log("🚀 Interview Started");
         if (!ws.current || ws.current.readyState === WebSocket.CLOSED) {
 
 ws.current = new WebSocket(
@@ -105,31 +135,57 @@ ws.current.binaryType = "arraybuffer";  // 🔥 IMPORTANT
         }
         ws.current.onopen = () => console.log("Connected to interview WebSocket");
 ws.current.onmessage = async (event) => {
-    const audioBlob = new Blob([event.data], { type: "audio/mp3" });
-    const audioUrl = URL.createObjectURL(audioBlob);
+  const audioBlob = new Blob([event.data], { type: "audio/mp3" });
+  const audioUrl = URL.createObjectURL(audioBlob);
 
-    const audio = new Audio(audioUrl);
-    audio.play();
+  const audio = new Audio(audioUrl);
+  audio.play();
 
-    audio.onended = () => {
-    setTimeout(() => {
-        startListening();
-    }, 1000); // prevents overlap issues
-};
+  audio.onended = () => {
+    startListening();
+  };
 };
     };
 
-    function endSession(){
-        window.speechSynthesis.cancel();
-        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-            ws.current.close();
-            console.log("WebSocket closed.");
-        }
-        
+    function endSession() {
+    window.speechSynthesis.cancel();
+
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+        ws.current.close();
     }
+
+    setTimeout(() => {
+        window.location.href = "/applications";
+    }, 500); // allow graceful close
+}
+
+  const triggerWarning = (message) => {
+  console.log("Malpractice detected, Focus on screen 🚨", message);
+
+  setViolations((prev) => {
+    const updated = prev + 1;
+
+showPopup(message);
+    // 🔊 Optional voice warning
+    const speech = new SpeechSynthesisUtterance(message);
+
+    // ❌ Auto terminate after 3
+    if (updated >= 3) {
+showPopup("Interview terminated due to malpractice");
+      endSession();
+    }
+
+    return updated;
+  });
+};
 
     return (
         <div className = "body">
+            {popup && (
+  <div className="warning-popup">
+    ⚠️ {popup}
+  </div>
+)}
            <div className="headers_interview_page">
                 <NavLink to="/interviewForm"><Backtbtn /></NavLink>
             </div>
@@ -139,13 +195,21 @@ ws.current.onmessage = async (event) => {
             </div>
                 <h1>Real Time Interview with face analysis</h1>           
             <div className="video">
-                <Video />
+                <div className="video-container">
+
+<Video triggerWarning={triggerWarning} isActive={isInterviewStarted} autoPlay playsInline width="700" height="500" />
+  <div className="face-guide"></div>
+
+</div>
             </div>
             
             <div className="buttons">
-                <button onClick={handleStartInterview}>Ready</button>            
-                <NavLink to="/applications"><button onClick={endSession}>End Session</button></NavLink>
-            </div>            
+  {!isInterviewStarted ? (
+    <button onClick={handleStartInterview}>Start Interview</button>
+  ) : (
+   <NavLink to="/applications"><button onClick={endSession}>End Interview</button></NavLink>
+  )}
+</div>          
         </div>
     )
 }

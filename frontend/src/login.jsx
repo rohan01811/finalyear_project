@@ -9,6 +9,28 @@ function Login() {
   const [role, setRole] = useState("candidate"); // default
   const navigate = useNavigate();
 
+  async function refreshSession() {
+  const session = JSON.parse(localStorage.getItem("session"));
+
+  const res = await fetch("http://127.0.0.1:8000/auth/refresh", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      refresh_token: session.refresh_token
+    }),
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    localStorage.setItem("session", JSON.stringify(data.session));
+    return data.session.access_token;
+  } else {
+    localStorage.clear();
+    window.location.href = "/login";
+  }
+}
+
   const handleLogin = async () => {
     try {
       const res = await fetch("http://127.0.0.1:8000/auth/login", {
@@ -23,19 +45,20 @@ function Login() {
 
       const data = await res.json();
 
-    if (res.ok) {
-  localStorage.setItem("token", data.access_token);
+if (res.ok) {
 
-  // 👇 fetch user profile from backend
+  // ✅ STORE SESSION (CRITICAL)
+  localStorage.setItem("session", JSON.stringify(data.session));
+
   const userRes = await fetch(`http://127.0.0.1:8000/auth/me/${data.user.id}`);
   const userData = await userRes.json();
   const finalUser = { ...userData, role };
 
-  // store full user profile
-  localStorage.setItem("userProfile", JSON.stringify(userData));
+  localStorage.setItem("userProfile", JSON.stringify(finalUser));
 
   navigate("/");
-} else {
+}
+ else {
         alert(data.detail || "Login failed");
       }
 

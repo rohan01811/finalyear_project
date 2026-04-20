@@ -2,13 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import "./video.css";
 
-const Video = () => {
+const Video = ({ triggerWarning,isActive }) => {
   const { sessionId } = useParams();   // ✅ Get session ID from route
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const ws = useRef(null);
   const stream = useRef(null);
+  const eyeAwayStart = useRef(null);
+  const lastWarningTime = useRef(0);
+// const eyeAwayStart = useRef(null);
+const faceMissingStart = useRef(null);
 
   const [emotion, setEmotion] = useState("Connecting to face analysis...");
   const [eyeContact, setEyeContact] = useState("");
@@ -17,7 +21,7 @@ const Video = () => {
   // CONNECT TO VIDEO WEBSOCKET
   // ===============================
   useEffect(() => {
-    if (!sessionId) return;
+  if (!sessionId || !isActive) return;  // 🔥 IMPORTANT
 
     ws.current = new WebSocket(
       `ws://127.0.0.1:8000/api/interview/video?session_id=${sessionId}`
@@ -28,21 +32,70 @@ const Video = () => {
       setEmotion("Camera connected. Analyzing...");
     };
 
-    ws.current.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log("Video Backend Response:", data);
 
-        setEmotion(data.emotion || "Analyzing...");
-        setEyeContact(
-          data.eye_contact === false
-            ? "Eye Contact not maintained"
-            : ""
-        );
-      } catch (err) {
-        console.log("Invalid JSON from backend");
-      }
-    };
+ws.current.onmessage = (event) => {
+  try {
+    const data = JSON.parse(event.data);
+
+    // ❌ REMOVE console spam
+    // console.log("Video Backend Response:", data);
+
+setEmotion("Monitoring active");
+    setEyeContact(
+      data.eye_contact === false ? data.warning : "Looking good"
+    );
+
+    // 🚨 CONTROLLED WARNING SYSTEM
+ const now = Date.now();
+
+// 🚫 FACE NOT DETECTED
+// 🚫 FACE NOT DETECTED (STRICT)
+if (!data.face_detected) {
+
+  if (!faceMissingStart.current) {
+    faceMissingStart.current = now;
+  }
+
+  const duration = now - faceMissingStart.current;
+
+  if (duration > 2000) {   // 🔥 reduce threshold (2 sec)
+    triggerWarning("Face not visible - stay in camera");
+    faceMissingStart.current = null; // prevent repeat spam
+  }
+
+} else {
+  faceMissingStart.current = null;
+}
+
+// 👀 EYE TRACKING
+if (data.eye_contact === false) {
+
+  if (!eyeAwayStart.current) {
+    eyeAwayStart.current = now;
+  }
+
+  const duration = now - eyeAwayStart.current;
+
+  if (duration > 4000 && now - lastWarningTime.current > 10000) {
+triggerWarning(data.warning || "Please focus on screen");
+    lastWarningTime.current = now;
+    eyeAwayStart.current = null;
+  }
+
+} else {
+  eyeAwayStart.current = null;
+}
+
+// 👥 MULTIPLE FACES
+if (data.multiple_faces && now - lastWarningTime.current > 10000) {
+  triggerWarning("Multiple people detected");
+  lastWarningTime.current = now;
+}
+
+  } catch (err) {
+    console.log("Invalid JSON from backend");
+  }
+};
 
     ws.current.onerror = (error) => {
       console.log("Video WebSocket Error:", error);
@@ -58,7 +111,9 @@ const Video = () => {
     ws.current.close();
   }
 };
-  }, [sessionId]);
+  }, [sessionId,isActive]);
+
+  
 
   // ===============================
   // START CAMERA
@@ -91,14 +146,14 @@ const Video = () => {
   // CAPTURE FRAME EVERY 3 SECONDS
   // ===============================
 useEffect(() => {
-  if (!ws.current) return;
+  if (!isActive) return;
 
   const interval = setInterval(() => {
     captureImage();
-  }, 3000);
+  }, 900);
 
   return () => clearInterval(interval);
-}, [ws.current]);
+}, [isActive]);
 
   const captureImage = async () => {
     if (

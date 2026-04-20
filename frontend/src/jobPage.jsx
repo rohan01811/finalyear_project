@@ -12,11 +12,49 @@ function Jobs() {
     const [uploadedFile, setUploadedFile] = useState(null);
 const [appliedJobs, setAppliedJobs] = useState([]);
 
+async function getValidToken() {
+  const session = JSON.parse(localStorage.getItem("session"));
+
+  if (!session) return null;
+
+  const now = Math.floor(Date.now() / 1000);
+
+  // ⏳ if expired
+  if (session.expires_at <= now + 60) {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/auth/refresh", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          refresh_token: session.refresh_token
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem("session", JSON.stringify(data.session));
+        return data.session.access_token;
+      } else {
+        localStorage.clear();
+        window.location.href = "/login";
+        return null;
+      }
+    } catch (err) {
+      console.error("Refresh failed", err);
+      return null;
+    }
+  }
+
+  return session.access_token;
+}
+
 useEffect(() => {
   const fetchAppliedJobs = async () => {
     try {
-      const token = localStorage.getItem("token");
-
+const token = await getValidToken();
       const res = await axios.get(
         "http://127.0.0.1:8000/jobs/my-applications",
         {
@@ -37,8 +75,7 @@ useEffect(() => {
 
 const handleApply = async (job) => {
   try {
-    const token = localStorage.getItem("token");
-
+const token = await getValidToken();
     const jobId = job.job_apply_link.split("/").pop(); // extract id
 
     const res = await axios.post(

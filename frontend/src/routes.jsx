@@ -29,7 +29,14 @@ function Route_page() {
         
         <Route path="/login" element = {<Login />} />
         <Route path="/signup" element = {<Signup />} />
-        <Route path="/applications" element = {<ApplicationHis />} />
+       <Route
+  path="/applications"
+  element={
+    <PrivateRoute redirectTo="/login">
+      <ApplicationHis />
+    </PrivateRoute>
+  }
+/>
         <Route path="/notifications" element = {<Notifications />} />
       </Routes>
     </Router>

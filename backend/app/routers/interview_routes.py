@@ -1,8 +1,11 @@
 # backend/app/routers/interview_routes.py
+
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 from fastapi import HTTPException
 from openai import audio
 import random
+from app.services.vision_service import analyze_frame
+import json
 
 import websocket
 from pydantic import BaseModel
@@ -22,6 +25,10 @@ from app.services.interview_engine import (
 
 import httpx
 import asyncio
+
+import time
+
+
 
 async def trigger_evaluation(interview_id: str):
     try:
@@ -117,6 +124,46 @@ def create_interview(data: InterviewCreateRequest):
 # INTERVIEW WEBSOCKET
 # ===============================
 
+
+
+connections = set()
+
+@router.websocket("/video")
+async def video_socket(websocket: WebSocket, session_id: str = Query(...)):
+    await websocket.accept()
+
+    session = get_session(session_id)
+    if not session:
+        await websocket.close()
+        return
+
+    connections.add(websocket)
+    print(f"Active video connections: {len(connections)}")
+
+    last_log = time.time()
+    violation_count = session.get('violation_count', 0)
+
+    try:
+        while True:
+            frame = await websocket.receive_bytes()
+            result = analyze_frame(frame)
+
+            if not result["eye_contact"] or result["multiple_faces"]:
+                violation_count += 1
+
+            if time.time() - last_log > 30:
+                print(f"📊 30s Report → Violations: {violation_count}")
+                session['violation_count'] = session.get('violation_count', 0) + 1
+                
+                last_log = time.time()
+
+            await websocket.send_text(json.dumps(result))
+
+    except WebSocketDisconnect:
+        session['violation_count'] = violation_count
+        connections.remove(websocket)
+        print("Video WebSocket disconnected")
+
 @router.websocket("/interview")
 async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
     await websocket.accept()
@@ -139,13 +186,17 @@ async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
     MAX_QUESTIONS = 4
     
     current_q = questions[index]
-    try:
-            await websocket.send_bytes(
-          synthesize_speech(current_q["question"])
-         )
+    audio = synthesize_speech(current_q["question"])
+
+    if not audio:
+        print("❌ TTS failed...")
+        audio = synthesize_speech(current_q["question"])
     
-    except Exception as e:
-        print("Send question failed:", e)
+    if audio:
+        await websocket.send_bytes(audio)
+
+    else:
+        print("❌ TTS FAILED COMPLETELY — SKIPPING QUESTION")
 
     try:
         while True:
@@ -159,12 +210,13 @@ async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
             print("USER ANSWER:", answer)
 
             score = float(evaluate_answer(answer, current_q["ideal_answer"]))
-
+            behavior_score = max(0, 100 - session.get('violation_count', 0) * 5)
             supabase.table("answers").insert({
                 "question_id": current_q["id"],
                 "candidate_answer": answer,
                 "similarity_score": score,
                 "quick_score": score,
+                "video_analysis": behavior_score,
                 "difficulty": current_q["difficulty"]
             }).execute()
 
@@ -201,12 +253,15 @@ async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
             if index < len(questions):
 
                 current_q = questions[index]
-                try:
-                     await websocket.send_bytes(
-                    synthesize_speech(current_q["question"])
-                )
-                except Exception as e:
-                 print("Send question failed:", e)
+                audio = synthesize_speech(current_q["question"])
+
+                if not audio:
+                    print("❌ TTS failed...")
+                    audio = synthesize_speech(current_q["question"])
+                if audio:
+                    await websocket.send_bytes(audio)    
+                else:
+                    print("❌ TTS FAILED COMPLETELY — SKIPPING QUESTION")
 
     except WebSocketDisconnect:
         print("Interview WebSocket disconnected")
@@ -214,18 +269,3 @@ async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
 # VIDEO WEBSOCKET
 # ===============================
 
-@router.websocket("/video")
-async def video_socket(websocket: WebSocket, session_id: str = Query(...)):
-    await websocket.accept()
-
-    try:
-        while True:
-            frame = await websocket.receive_bytes()
-
-            # Later:
-            # - Eye tracking
-            # - Emotion detection
-            # - Head pose
-
-    except WebSocketDisconnect:
-        print("Video WebSocket disconnected")

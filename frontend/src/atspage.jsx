@@ -41,8 +41,18 @@ async function sendData(prompt) {
     formdata.append("file", resume)
 
     // ✅ Correct endpoint
-    await axios.post('http://127.0.0.1:8000/ats/upload', formdata)
+const session = JSON.parse(localStorage.getItem("session"));
+const token = session?.access_token;
 
+await axios.post(
+  'http://127.0.0.1:8000/ats/upload',
+  formdata,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  }
+);
     // ✅ Correct endpoint
     const response = await axios.post('http://127.0.0.1:8000/ats/analyze')
 

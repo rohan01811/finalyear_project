@@ -1,17 +1,145 @@
-// frontend/src/ApplicationHis.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+const styles = {
+container: {
+  padding: "30px",
+  background: "#0f172a",
+  minHeight: "100vh",
+  color: "#fff",
+  width: "100%",              // ✅ ADD THIS
+  maxWidth: "1400px",         // ✅ LIMIT FOR PROFESSIONAL LOOK
+  margin: "0 auto",           // ✅ CENTER IT
+},
+
+  heading: {
+    fontSize: "28px",
+    marginBottom: "25px",
+    fontWeight: "600"
+  },
+
+ grid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", // ✅ FIXED
+  gap: "24px",
+  width: "100%"
+},
+
+ card: {
+  background: "#1e293b",
+  padding: "20px",
+  borderRadius: "16px",
+  boxShadow: "0 10px 25px rgba(0,0,0,0.35)",
+  transition: "0.3s",
+  width: "100%",   // ✅ IMPORTANT
+},
+
+  cardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "10px"
+  },
+
+  company: {
+    fontSize: "18px",
+    fontWeight: "600"
+  },
+
+  role: {
+    fontSize: "15px",
+    color: "#cbd5f5",
+    marginBottom: "15px"
+  },
+
+  status: {
+    padding: "4px 10px",
+    borderRadius: "20px",
+    fontSize: "12px",
+    fontWeight: "500",
+    textTransform: "capitalize",
+    color: "#000"
+  },
+
+  actions: {
+    marginTop: "10px"
+  },
+
+  primaryBtn: {
+    width: "100%",
+    padding: "10px",
+    border: "none",
+    borderRadius: "8px",
+    background: "#22c55e",
+    color: "#000",
+    fontWeight: "600",
+    cursor: "pointer"
+  },
+
+  secondaryBtn: {
+    width: "100%",
+    padding: "10px",
+    border: "none",
+    borderRadius: "8px",
+    background: "#3b82f6",
+    color: "#fff",
+    fontWeight: "600",
+    cursor: "pointer"
+  }
+};
+
 
 function ApplicationHis() {
   const [applications, setApplications] = useState([]);
-const [loadingId, setLoadingId] = useState(null);
+  const [loadingId, setLoadingId] = useState(null);
+
   useEffect(() => {
     fetchApplications();
   }, []);
 
+  // ✅ UNIVERSAL TOKEN FUNCTION
+  const getValidToken = async () => {
+    const session = JSON.parse(localStorage.getItem("session"));
+
+    if (!session) return null;
+
+    const now = Math.floor(Date.now() / 1000);
+
+    // 🔄 refresh if expired
+    if (session.expires_at <= now + 60) {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/auth/refresh", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            refresh_token: session.refresh_token
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem("session", JSON.stringify(data.session));
+          return data.session.access_token;
+        } else {
+          localStorage.clear();
+          window.location.href = "/login";
+          return null;
+        }
+      } catch (err) {
+        console.error("Refresh failed", err);
+        return null;
+      }
+    }
+
+    return session.access_token;
+  };
+
+  // ✅ FETCH APPLICATIONS
   const fetchApplications = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = await getValidToken();
 
       if (!token) {
         alert("Please login again ⚠️");
@@ -27,238 +155,111 @@ const [loadingId, setLoadingId] = useState(null);
         }
       );
 
-      setApplications(res.data.data);
+      setApplications(res.data.data || []);
     } catch (error) {
-      console.error(error);
+      console.error("Fetch Applications Error:", error);
     }
   };
 
-const handleStartInterview = async (jobId, applicationId) => {
-  try {
-    setLoadingId(applicationId); // 🔥 show loading
+  // ✅ START INTERVIEW
+  const handleStartInterview = async (jobId, applicationId) => {
+    try {
+      setLoadingId(applicationId);
 
-    const jobRes = await axios.get(`http://127.0.0.1:8000/jobs/${jobId}`);
-    const job = jobRes.data;
+      const token = await getValidToken();
 
-    const res = await axios.post("http://127.0.0.1:8000/api/interview/create", {
-      application_id: applicationId
-    });
+      const jobRes = await axios.get(
+        `http://127.0.0.1:8000/jobs/${jobId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
 
-    const sessionId = res.data.session_id;
+      const res = await axios.post(
+        "http://127.0.0.1:8000/api/interview/create",
+        {
+          application_id: applicationId
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
 
-    window.location.href = `/interview/${sessionId}`;
+      const sessionId = res.data.session_id;
 
-  } catch (error) {
-    console.error(error);
-    alert("Failed to start interview");
-    setLoadingId(null); // reset on error
-  }
-};
+      window.location.href = `/interview/${sessionId}`;
+    } catch (error) {
+      console.error(error);
+      alert("Failed to start interview");
+      setLoadingId(null);
+    }
+  };
 
   const handleViewReport = (appId) => {
     alert("View Report for application: " + appId);
   };
 
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "radial-gradient(circle at top, #1a1a1a, #0f0f0f)",
-        color: "white",
-        padding: "40px 20px"
-      }}
-    >
-      {/* HEADER */}
-      <div style={{ textAlign: "center", marginBottom: "40px" }}>
-        <h1 style={{ fontSize: "2.8rem", marginBottom: "10px" }}>
-          📂 Application History
-        </h1>
-        <p style={{ color: "#aaa" }}>Track your journey 🚀</p>
-      </div>
+ return (
+  <div style={styles.container}>
+    <h1 style={styles.heading}>📂 Application History</h1>
 
-      {/* GRID */}
-      <div
-        style={{
-          maxWidth: "1100px",
-          margin: "0 auto",
-          display: "grid",
-          gap: "25px",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))"
-        }}
-      >
-        {applications.map((app) => {
-          const job = app.jobs;
+    <div style={styles.grid}>
+      {applications.map((app) => {
+        const job = app.jobs;
 
-          return (
-         <div
-  key={app.id}
-  style={{
-    background: "linear-gradient(145deg, #1e1e1e, #262626)",
-    borderRadius: "22px",
-    padding: "0",
-    overflow: "hidden",
-    border: "1px solid #2f2f2f",
-    boxShadow: "0 15px 35px rgba(0,0,0,0.6)",
-    transition: "0.3s",
-    display: "flex",
-    flexDirection: "column"
-  }}
-  onMouseEnter={(e) => {
-    e.currentTarget.style.transform = "translateY(-6px)";
-    e.currentTarget.style.boxShadow =
-      "0 20px 40px rgba(0,0,0,0.8)";
-  }}
-  onMouseLeave={(e) => {
-    e.currentTarget.style.transform = "translateY(0)";
-    e.currentTarget.style.boxShadow =
-      "0 15px 35px rgba(0,0,0,0.6)";
-  }}
->
-  {/* 🔥 HEADER */}
-  <div
-    style={{
-      background: "linear-gradient(90deg, #0f2027, #203a43, #2c5364)",
-      padding: "18px 20px",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
-    }}
-  >
-    <div>
-      <h2
-        style={{
-          margin: 0,
-          fontSize: "1.4rem",
-          fontWeight: "700",
-          letterSpacing: "0.5px"
-        }}
-      >
-        {job?.company}
-      </h2>
-    </div>
+        return (
+          <div key={app.id} style={styles.card}>
+            <div style={styles.cardHeader}>
+              <h2 style={styles.company}>{job?.company}</h2>
+              <span
+                style={{
+                  ...styles.status,
+                  backgroundColor:
+                    app.status === "applied"
+                      ? "#facc15"
+                      : app.status === "interview_done"
+                      ? "#22c55e"
+                      : "#64748b"
+                }}
+              >
+                {app.status}
+              </span>
+            </div>
 
-    <span
-      style={{
-        padding: "6px 12px",
-        borderRadius: "20px",
-        fontSize: "12px",
-        fontWeight: "bold",
-        background:
-          app.status === "selected"
-            ? "#2e7d32"
-            : app.status === "rejected"
-            ? "#c62828"
-            : app.status === "interview_done"
-            ? "#ef6c00"
-            : "#f9a825",
-        color: "white"
-      }}
-    >
-      {app.status}
-    </span>
-  </div>
+            <p style={styles.role}>{job?.title}</p>
 
-  {/* 🎯 BODY */}
-  <div style={{ padding: "20px" }}>
-    {/* ROLE */}
-    <p
-      style={{
-        fontSize: "1.15rem",
-        fontWeight: "600",
-        color: "#4FC3F7",
-        marginBottom: "10px"
-      }}
-    >
-      {job?.title}
-    </p>
+            <div style={styles.actions}>
+              {app.status === "applied" && (
+                <button
+                  style={styles.primaryBtn}
+                  onClick={() => handleStartInterview(job.id, app.id)}
+                  disabled={loadingId === app.id}
+                >
+                  {loadingId === app.id
+                    ? "⏳ Starting..."
+                    : "🚀 Start Interview"}
+                </button>
+              )}
 
-    {/* TYPE */}
-    <p style={{ color: "#aaa", fontSize: "0.9rem" }}>
-      {job?.job_type}
-    </p>
-
-    {/* BUTTON */}
-    <div style={{ marginTop: "25px" }}>
-    {app.status === "applied" && (
-  <button
-    onClick={() => handleStartInterview(job.id, app.id)}
-    disabled={loadingId === app.id}
-    style={{
-      width: "100%",
-      padding: "12px",
-      borderRadius: "12px",
-      border: "none",
-      background:
-        loadingId === app.id
-          ? "#555"
-          : "linear-gradient(90deg, #2196F3, #00BCD4)",
-      color: "white",
-      fontWeight: "bold",
-      cursor: loadingId === app.id ? "not-allowed" : "pointer"
-    }}
-  >
-    {loadingId === app.id ? "Please wait..." : "Start Interview 🎤"}
-  </button>
-)}
-
- {app.status === "interview_done" && (
-  <button
-    onClick={() => handleViewReport(app.id)}
-    style={{
-      width: "100%",
-      padding: "12px",
-      borderRadius: "12px",
-      border: "none",
-      background:
-        "linear-gradient(90deg, #9C27B0, #E040FB)",
-      color: "white",
-      fontWeight: "bold",
-      cursor: "pointer"
-    }}
-  >
-    Interview Done ✅ (View Report)
-  </button>
-)}
-
-      {app.status === "selected" && (
-        <button
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "12px",
-            border: "none",
-            background: "#2e7d32",
-            color: "white",
-            fontWeight: "bold"
-          }}
-        >
-          Selected ✅
-        </button>
-      )}
-
-      {app.status === "rejected" && (
-        <button
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "12px",
-            border: "none",
-            background: "#c62828",
-            color: "white",
-            fontWeight: "bold"
-          }}
-        >
-          Rejected ❌
-        </button>
-      )}
+              {app.status === "interview_done" && (
+                <button
+                  style={styles.secondaryBtn}
+                  onClick={() => handleViewReport(app.id)}
+                >
+                  📊 View Report
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   </div>
-</div>
-          );
-        })}
-      </div>
-    </div>
-  );
+);
 }
 
 export default ApplicationHis;

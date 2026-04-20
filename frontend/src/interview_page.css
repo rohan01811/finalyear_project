@@ -39,3 +39,33 @@ h1{
     left: 40px;
     top: 40px; 
 }
+
+.warning-popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: red;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  z-index: 9999;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.video-container {
+  position: relative;
+  display: inline-block;
+}
+
+.face-guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 250px;
+  height: 300px;
+  border: 3px dashed rgba(0, 255, 0, 0.6);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}

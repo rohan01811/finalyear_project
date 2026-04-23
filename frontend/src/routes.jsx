@@ -8,7 +8,7 @@ import Jobs from "./jobPage";
 import PrivateRoute from "./privateRoute";
 import Login from "./login";
 import Signup from "./signup";
-import ApplicationHis from "./ApplicationHis";
+import Applications from "./Applications";
 import Notifications from "./Notifications";
 function Route_page() {
   return (
@@ -33,7 +33,7 @@ function Route_page() {
   path="/applications"
   element={
     <PrivateRoute redirectTo="/login">
-      <ApplicationHis />
+      <Applications />
     </PrivateRoute>
   }
 />

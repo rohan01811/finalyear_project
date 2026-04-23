@@ -60,13 +60,14 @@ def analyze_frame(image_bytes):
     ratio = dist_left / (dist_right + 1e-6)
 
     # 🔥 RIGHT SIDE DETECTION
-    if ratio > 1.3 or nose.x > 0.58:
+# 🔥 RIGHT SIDE DETECTION (LESS STRICT)
+    if ratio > 1.55 or nose.x > 0.65:
         response["eye_contact"] = False
         response["warning"] = "Looking right (head)"
         return response
 
-    # 🔥 LEFT SIDE DETECTION
-    elif ratio < 0.75 or nose.x < 0.42:
+    # 🔥 LEFT SIDE DETECTION (LESS STRICT)
+    elif ratio < 0.65 or nose.x < 0.35:
         response["eye_contact"] = False
         response["warning"] = "Looking left (head)"
         return response

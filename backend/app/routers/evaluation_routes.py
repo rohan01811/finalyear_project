@@ -71,7 +71,7 @@ async def run_evaluation(interview_id: str):
         
         
 
-        
+        total_violations = 0
 
         behavior_avg = (
                 sum(behavior_scores) / len(behavior_scores)
@@ -131,12 +131,13 @@ async def run_evaluation(interview_id: str):
 
         # 🔔 Notification
         supabase.table("notifications").insert({
-            "title": "Interview Evaluation Completed 🎉",
-            "message": "Click to view your report",
-            "type": "success",
-            "interview_id": interview_id,
-            "read": False
-        }).execute()
+    "title": "Interview Evaluation Completed 🎉",
+    "message": "Click to view your report",
+    "type": "success",
+    "interview_id": interview_id,
+    "candidate_id": candidate_id,   # ✅ CRITICAL FIX
+    "read": False
+}).execute()
 
         return {
             "technical": tech,

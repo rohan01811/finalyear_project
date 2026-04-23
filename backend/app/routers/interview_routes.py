@@ -87,11 +87,11 @@ def create_interview(data: InterviewCreateRequest):
 
     # 🧠 STEP 3: Create session
     session_id = create_session({
-        "interview_id": interview_id,
-        "application_id":data.application_id,
-        "job_id": job_id,
-        "candidate_id": candidate_id
-    })
+    "interview_id": interview_id,
+    "application_id": data.application_id,
+    "job_id": job_id,
+    "candidate_id": candidate_id
+      })
 
     # 🧠 STEP 4: Get job details (IMPORTANT 🔥)
     job = supabase.table("jobs") \
@@ -121,9 +121,8 @@ def create_interview(data: InterviewCreateRequest):
     return {"session_id": session_id}
 
 # ===============================
-# INTERVIEW WEBSOCKET
+# VIDEO WEBSOCKET
 # ===============================
-
 
 
 connections = set()
@@ -140,29 +139,67 @@ async def video_socket(websocket: WebSocket, session_id: str = Query(...)):
     connections.add(websocket)
     print(f"Active video connections: {len(connections)}")
 
+    # ⏱️ Logging timer
     last_log = time.time()
-    violation_count = session.get('violation_count', 0)
+
+    # 🎯 Counters
+    violation_count = session.get('violation_count', 0)        # per question
+    total_violations = session.get('total_violations', 0)      # full interview
+
+    # 🧠 Control logic
+    last_violation_time = 0
+    COOLDOWN = 2   # seconds
+    prev_violation_state = False
 
     try:
         while True:
             frame = await websocket.receive_bytes()
             result = analyze_frame(frame)
 
-            if not result["eye_contact"] or result["multiple_faces"]:
+            current_time = time.time()
+
+            # 🚨 Detect violation
+            is_violation = (not result["eye_contact"] or result["multiple_faces"])
+
+            # ✅ Count ONLY new violations + cooldown
+            if (
+                is_violation 
+                and not prev_violation_state 
+                and (current_time - last_violation_time > COOLDOWN)
+            ):
                 violation_count += 1
+                total_violations += 1
+                last_violation_time = current_time
 
-            if time.time() - last_log > 30:
-                print(f"📊 30s Report → Violations: {violation_count}")
-                session['violation_count'] = session.get('violation_count', 0) + 1
-                
-                last_log = time.time()
+            # 🔁 Update state
+            prev_violation_state = is_violation
 
+            # 📊 Log every 30 seconds
+            if current_time - last_log > 30:
+                print(f"📊 30s Report → Current Q Violations: {violation_count}, Total: {total_violations}")
+
+                # ✅ Store periodically (not every frame)
+                session['violation_count'] = violation_count
+                session['total_violations'] = total_violations
+
+                last_log = current_time
+
+            # 📡 Send result to frontend
             await websocket.send_text(json.dumps(result))
 
     except WebSocketDisconnect:
+        # 💾 Save final values on disconnect
         session['violation_count'] = violation_count
+        session['total_violations'] = total_violations
+
         connections.remove(websocket)
         print("Video WebSocket disconnected")
+
+
+
+# ===============================
+# INTERVIEW WEBSOCKET
+# ===============================
 
 @router.websocket("/interview")
 async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
@@ -173,9 +210,16 @@ async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
         await websocket.close()
         return
 
-    metadata = session["metadata"]
-    interview_id = session["metadata"]["interview_id"]
 
+    interview_id = session.get("interview_id")
+
+
+    if not interview_id:
+         print("❌ interview_id missing:", session)
+         await websocket.close()
+         return
+    
+    print("Creating interview:", session.get("application_id"))
     # ✅ FETCH ALL QUESTIONS
     questions = supabase.table("questions") \
         .select("*") \
@@ -188,12 +232,14 @@ async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
     current_q = questions[index]
     audio = synthesize_speech(current_q["question"])
 
+    
+
     if not audio:
         print("❌ TTS failed...")
         audio = synthesize_speech(current_q["question"])
     
     if audio:
-        await websocket.send_bytes(audio)
+        await websocket.send_bytes(audio)    
 
     else:
         print("❌ TTS FAILED COMPLETELY — SKIPPING QUESTION")
@@ -211,6 +257,7 @@ async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
 
             score = float(evaluate_answer(answer, current_q["ideal_answer"]))
             behavior_score = max(0, 100 - session.get('violation_count', 0) * 5)
+            
             supabase.table("answers").insert({
                 "question_id": current_q["id"],
                 "candidate_answer": answer,
@@ -219,6 +266,8 @@ async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
                 "video_analysis": behavior_score,
                 "difficulty": current_q["difficulty"]
             }).execute()
+
+            session['violation_count'] = 0
 
             index += 1
 
@@ -235,12 +284,13 @@ async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
                  print("Send completion message failed:", e)
 
                 supabase.table("interviews").update({
-                        "status": "completed"
+                        "status": "completed"                     
+
                  }).eq("id", interview_id).execute()
 
                 supabase.table("applications").update({
-                      "status": "interview_done"
-                  }).eq("id", session["metadata"]["application_id"]).execute()
+                            "status": "interview_done"
+                        }).eq("id", session.get("application_id")).execute()
 
                 asyncio.create_task(trigger_evaluation(interview_id))
 
@@ -253,8 +303,13 @@ async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
             if index < len(questions):
 
                 current_q = questions[index]
-                audio = synthesize_speech(current_q["question"])
 
+                if not questions:
+                    print("❌ No questions found for interview:", interview_id)
+                    await websocket.close()
+                    return
+                
+                audio = synthesize_speech(current_q["question"])
                 if not audio:
                     print("❌ TTS failed...")
                     audio = synthesize_speech(current_q["question"])
@@ -265,7 +320,5 @@ async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
 
     except WebSocketDisconnect:
         print("Interview WebSocket disconnected")
-# ===============================
-# VIDEO WEBSOCKET
-# ===============================
+
 

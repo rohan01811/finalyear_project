@@ -6,7 +6,7 @@ INTERVIEW_SESSIONS = {}
 def create_session(data: dict):
     session_id = str(uuid.uuid4())
     INTERVIEW_SESSIONS[session_id] = {
-        "metadata": data,
+        **data, 
         "questions": []
     }
     return session_id

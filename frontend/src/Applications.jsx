@@ -121,16 +121,17 @@ const AppCard = ({ app, loadingId, onStartInterview, onViewReport, index }) => {
             onClick={() => onStartInterview(job.id, app.id)}
             disabled={isLoading}
             style={{
-              width: "100%", padding: "10px 0",
-              borderRadius: 8, border: "none",
-              background: isLoading ? "#1a2a1a" : "rgba(52,211,153,0.15)",
-              color: isLoading ? "#374151" : "#34d399",
-              border: `1px solid ${isLoading ? "rgba(255,255,255,0.05)" : "rgba(52,211,153,0.3)"}`,
-              fontSize: "0.85rem", fontWeight: 600,
-              fontFamily: "'Inter', sans-serif",
-              cursor: isLoading ? "not-allowed" : "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 7
-            }}
+  width: "100%",
+  padding: "10px 0",
+  borderRadius: 8,
+  background: isLoading ? "#1a2a1a" : "rgba(52,211,153,0.15)",
+  color: isLoading ? "#374151" : "#34d399",
+  border: `1px solid ${isLoading ? "rgba(255,255,255,0.05)" : "rgba(52,211,153,0.3)"}`,
+  fontSize: "0.85rem",
+  fontWeight: 600,
+  fontFamily: "'Inter', sans-serif",
+  cursor: isLoading ? "not-allowed" : "pointer",
+}}
           >
             {isLoading ? (
               <>

@@ -349,7 +349,7 @@ const isApplied = (job) => {
                 style={{
                     width: '100%',
                     padding: '12px',
-                    backgroundColor: '#FF9800',
+                    backgroundColor: '#00e5b8',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',

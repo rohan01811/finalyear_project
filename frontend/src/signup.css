@@ -1,31 +1,306 @@
-.signup-main{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 20px; 
-    padding: 20px;
-    border: 2px solid #3B3B3B;
-    border-radius: 8px;
-    height: 40vh;
-    width: 20vw;
+/* ── Page Shell ─────────────────────────────────────────── */
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
-.signup-body{
-     width: 100vw;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    gap: 40px;
-    justify-content: center;
-    align-items: center;
+.su-page {
+  min-height: 100vh;
+  width: 100%;
+  background: #0a0a0f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  overflow: hidden;
 }
 
-.signup-inputs{
-     display: flex;
-    justify-content: space-between;
+/* Subtle grid pattern overlay */
+.su-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
 }
 
-.signup-btn{
-    display: flex;
-    justify-content: center;
+/* Ambient glow behind card */
+.su-page::before {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ── Back Button ─────────────────────────────────────────── */
+.su-back {
+  position: absolute;
+  top: 28px;
+  left: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  letter-spacing: 0.01em;
+}
+.su-back:hover {
+  color: #e5e7eb;
+  border-color: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.07);
+}
+
+/* ── Card ────────────────────────────────────────────────── */
+.su-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 40px 36px 36px;
+  backdrop-filter: blur(16px);
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset;
+  animation: su-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes su-rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Card Header ─────────────────────────────────────────── */
+.su-card-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.su-logo-ring {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(139,92,246,0.15));
+  border: 1px solid rgba(99,102,241,0.35);
+  color: #818cf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+}
+
+.su-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+.su-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Fields ──────────────────────────────────────────────── */
+.su-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.su-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.su-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #9ca3af;
+  letter-spacing: 0.01em;
+}
+
+.su-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.su-input-icon {
+  position: absolute;
+  left: 14px;
+  color: #4b5563;
+  pointer-events: none;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.su-input {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 11px 14px 11px 42px;
+  font-size: 14px;
+  color: #e5e7eb;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.su-input::placeholder {
+  color: #374151;
+}
+
+.su-input:focus {
+  border-color: rgba(99,102,241,0.6);
+  background: rgba(99,102,241,0.07);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+}
+
+/* Select specific */
+.su-select-wrap .su-select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  padding-right: 36px;
+}
+
+.su-select option {
+  background: #1a1a2e;
+  color: #e5e7eb;
+}
+
+.su-chevron {
+  position: absolute;
+  right: 12px;
+  color: #4b5563;
+  pointer-events: none;
+}
+
+/* Password show/hide */
+.su-input--pw {
+  padding-right: 42px;
+}
+
+.su-eye-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  border-radius: 5px;
+  transition: color 0.2s;
+}
+.su-eye-btn:hover { color: #9ca3af; }
+
+/* ── Submit Button ───────────────────────────────────────── */
+.su-submit {
+  width: 100%;
+  padding: 13px 20px;
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 0.01em;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 24px rgba(99,102,241,0.35);
+  font-family: inherit;
+  margin-bottom: 20px;
+}
+
+.su-submit:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px rgba(99,102,241,0.45);
+}
+
+.su-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.su-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.su-submit--loading {
+  pointer-events: none;
+}
+
+/* Spinner */
+.su-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: su-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes su-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Login Link ──────────────────────────────────────────── */
+.su-login-link {
+  text-align: center;
+  font-size: 13.5px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.su-link {
+  color: #818cf8;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.su-link:hover { color: #a5b4fc; text-decoration: underline; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .su-card {
+    margin: 16px;
+    padding: 28px 22px 24px;
+    border-radius: 16px;
+  }
+  .su-back {
+    top: 16px;
+    left: 16px;
+  }
 }

@@ -1,90 +1,501 @@
-*{
-    margin: 0px;
-    padding: 0px;
+/* ─── Reset & Base ─────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+:root {
+  --green:       #00e676;
+  --green-dim:   #00c853;
+  --green-glow:  rgba(0, 230, 118, 0.18);
+  --blue:        #448aff;
+  --blue-dim:    #2979ff;
+  --blue-glow:   rgba(68, 138, 255, 0.18);
+  --surface:     #0f0f0f;
+  --surface-2:   #161616;
+  --surface-3:   #1e1e1e;
+  --border:      rgba(255,255,255,0.07);
+  --border-em:   rgba(255,255,255,0.14);
+  --text-1:      #f5f5f5;
+  --text-2:      #a8a8a8;
+  --text-3:      #6b6b6b;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   18px;
+  --ff:          'DM Sans', 'Inter', system-ui, sans-serif;
 }
 
-body, html {
-  
-    background-color: black;
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+html, body {
+  height: 100%;
+  background: var(--surface);
+  color: var(--text-1);
+  font-family: var(--ff);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
-.ats{
-    width: 100vw;
-
+/* ─── Background grid ───────────────────────────────────── */
+.ats-bg {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
 }
 
-.results{
-    color: white;
-    width: 70vw;
-    border: 2px solid rgb(7, 206, 7);
-    border-radius: 10px;;
-    align-items: center;
-    margin-left: 15vw;
-    padding: 20px;
-    background-color: rgb(32,32,32);
-}
-.resume{
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    align-items: center;
-    color: #00FC11;
-}
-.descriptions{
-    display: flex;
-    justify-content: center;
-    padding: 20px;
+/* ─── Root ───────────────────────────────────────────────── */
+.ats-root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 2rem;
 }
 
-textarea{
-    width: 50vw;
-    height: 30vh;
-    border-radius: 5px;
-    background-color: rgb(71, 69, 69);
-    color: white;
-    padding: 10px;
+/* ─── Header ─────────────────────────────────────────────── */
+.ats-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 2rem 2.5rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  position: relative;
 }
 
-.buttons{
-    padding: 20px;
+.ats-back {
+  margin-top: 4px;
+  flex-shrink: 0;
 }
 
-.headers_ats_page{   
-    position: absolute;
-    left: 30px;
-    top: 30px;
+.ats-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-h1{
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.ats-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green);
+  opacity: 0.9;
 }
 
-/* Enable scrolling for the entire page */
-body {
-    overflow-y: auto; /* Enable vertical scrolling */
-    overflow-x: hidden; /* Prevent horizontal scrolling */
-    background-color: black; /* Keep the dark theme */
-    color: white; /* Ensure text remains visible */
+.ats-title {
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--text-1);
+  line-height: 1.1;
 }
 
-/* Custom scrollbar styling */
-body::-webkit-scrollbar {
-    width: 10px; /* Adjust width of the scrollbar */
+.ats-subtitle {
+  font-size: 14px;
+  color: var(--text-2);
+  font-weight: 400;
+  margin-top: 2px;
 }
 
-body::-webkit-scrollbar-track {
-    background: #2b2b2b; /* Dark gray track */
-    border-radius: 10px;
+/* ─── Main two-column layout ─────────────────────────────── */
+.ats-main {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 0;
+  flex: 1;
+  min-height: calc(100vh - 110px);
 }
 
-body::-webkit-scrollbar-thumb {
-    background: #4f4f4f; /* Gray scrollbar thumb */
-    border-radius: 10px;
+/* ─── Panels ─────────────────────────────────────────────── */
+.ats-panel {
+  padding: 1.75rem 2rem;
 }
 
-body::-webkit-scrollbar-thumb:hover {
-    background: #6b6b6b; /* Slightly lighter gray on hover */
+.ats-panel-left {
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: linear-gradient(180deg, rgba(0,230,118,0.02) 0%, transparent 40%);
+}
+
+.ats-panel-right {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+}
+
+/* ─── Field Groups ───────────────────────────────────────── */
+.ats-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ats-field-grow {
+  flex: 1;
+  min-height: 0;
+}
+
+.ats-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.ats-label-icon {
+  font-size: 14px;
+}
+
+/* ─── Upload zone ────────────────────────────────────────── */
+.ats-upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1.5px dashed var(--border-em);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  min-height: 90px;
+  background: var(--surface-3);
+  position: relative;
+}
+
+.ats-upload-zone:hover {
+  border-color: var(--green);
+  background: var(--green-glow);
+}
+
+.ats-file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.ats-upload-icon {
+  font-size: 22px;
+  color: var(--green);
+  line-height: 1;
+}
+
+.ats-upload-hint {
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.ats-upload-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--green);
+  font-family: 'DM Mono', monospace;
+  word-break: break-all;
+  text-align: center;
+}
+
+/* ─── Textarea ───────────────────────────────────────────── */
+.ats-textarea {
+  flex: 1;
+  width: 100%;
+  min-height: 180px;
+  resize: none;
+  background: var(--surface-3);
+  border: 1px solid var(--border-em);
+  border-radius: var(--radius-md);
+  color: var(--text-1);
+  font-family: var(--ff);
+  font-size: 13.5px;
+  line-height: 1.65;
+  padding: 14px 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.ats-textarea::placeholder {
+  color: var(--text-3);
+}
+
+.ats-textarea:focus {
+  border-color: rgba(0, 230, 118, 0.5);
+  box-shadow: 0 0 0 3px var(--green-glow);
+}
+
+/* ─── Action buttons ─────────────────────────────────────── */
+.ats-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ats-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid transparent;
+  font-family: var(--ff);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+}
+
+.ats-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ats-btn-hr {
+  background: var(--green-glow);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.ats-btn-hr:hover:not(:disabled) {
+  background: var(--green);
+  color: #000;
+}
+
+.ats-btn-ats {
+  background: var(--blue-glow);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.ats-btn-ats:hover:not(:disabled) {
+  background: var(--blue);
+  color: #fff;
+}
+
+.ats-btn-icon {
+  font-size: 15px;
+}
+
+/* ─── Result panel header ────────────────────────────────── */
+.ats-result-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 0 1rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.25rem;
+  flex-shrink: 0;
+}
+
+.ats-result-title {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.ats-result-badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(0, 230, 118, 0.12);
+  color: var(--green);
+  border: 1px solid rgba(0, 230, 118, 0.25);
+  letter-spacing: 0.04em;
+}
+
+/* ─── Pulse dot (loading) ────────────────────────────────── */
+.ats-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.6); }
+}
+
+/* ─── Result body ────────────────────────────────────────── */
+.ats-result-body {
+  padding-right: 4px;
+}
+
+/* ─── Skeleton loader ────────────────────────────────────── */
+.ats-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.ats-sk-line {
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--surface-3) 25%, var(--surface-2) 50%, var(--surface-3) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.ats-sk-w80 { width: 80%; }
+.ats-sk-w60 { width: 60%; }
+.ats-sk-w90 { width: 90%; }
+.ats-sk-w50 { width: 50%; }
+.ats-sk-w75 { width: 75%; }
+.ats-sk-w65 { width: 65%; }
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Markdown output ────────────────────────────────────── */
+.ats-markdown {
+  color: var(--text-1);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.ats-markdown h1,
+.ats-markdown h2,
+.ats-markdown h3 {
+  color: var(--text-1);
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.ats-markdown h1 { font-size: 1.2rem; }
+.ats-markdown h2 { font-size: 1.05rem; }
+.ats-markdown h3 { font-size: 0.95rem; }
+
+.ats-markdown h1:first-child,
+.ats-markdown h2:first-child {
+  margin-top: 0;
+}
+
+.ats-markdown p {
+  margin: 0.5rem 0;
+  color: var(--text-1);
+}
+
+.ats-markdown strong {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.ats-markdown ul,
+.ats-markdown ol {
+  padding-left: 1.25rem;
+  margin: 0.5rem 0;
+}
+
+.ats-markdown li {
+  margin: 4px 0;
+  color: var(--text-2);
+}
+
+.ats-markdown li::marker {
+  color: var(--green);
+}
+
+.ats-markdown code {
+  font-family: 'DM Mono', monospace;
+  font-size: 12.5px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-em);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: #80cbc4;
+}
+
+.ats-markdown blockquote {
+  border-left: 3px solid var(--green);
+  padding-left: 12px;
+  margin: 0.75rem 0;
+  color: var(--text-2);
+  font-style: italic;
+}
+
+.ats-markdown hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1rem 0;
+}
+
+/* ─── Empty state ────────────────────────────────────────── */
+.ats-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 100%;
+  min-height: 240px;
+  text-align: center;
+  padding: 2rem;
+}
+
+.ats-empty-icon {
+  font-size: 2.5rem;
+  opacity: 0.4;
+}
+
+.ats-empty-heading {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.ats-empty-hint {
+  font-size: 13px;
+  color: var(--text-3);
+  max-width: 280px;
+  line-height: 1.6;
+}
+
+.ats-empty-hint strong {
+  color: var(--text-2);
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 5px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--border-em); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .ats-main {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .ats-panel-left {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .ats-panel-right {
+    min-height: 400px;
+  }
+  .ats-header {
+    padding: 1.25rem 1.25rem 1rem;
+  }
+  .ats-panel {
+    padding: 1.25rem;
+  }
 }

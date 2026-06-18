@@ -31,19 +31,15 @@ cd ai-mock-interview-platform
 # Frontend Setup
 cd frontend
 npm install
-npm start
+npm run dev
 
-# Backend Setup (FastAPI and Node.js)
+# Backend Setup (FastAPI)
 
 # FastAPI
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload
 
-# Node.js
-cd backend-Nodejs
-npm install
-npm run dev
 
 💡 Use Cases
 Students preparing for placements

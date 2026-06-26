@@ -30,9 +30,31 @@ function Signup() {
       });
       const data = await res.json();
       if (res.ok) {
-        alert("Signup successful! Please login.");
-        navigate("/");
-      } else {
+
+    // Store session
+    localStorage.setItem(
+        "session",
+        JSON.stringify(data.session)
+    );
+
+    // Fetch profile
+    const userRes = await fetch(
+        `http://127.0.0.1:8000/auth/me/${data.user.id}`
+    );
+
+    const userData = await userRes.json();
+
+    localStorage.setItem(
+        "userProfile",
+        JSON.stringify({
+            ...userData,
+            role: userData.role
+        })
+    );
+
+    navigate("/");
+}
+else {
         alert(data.detail || "Signup failed");
       }
     } catch (err) {

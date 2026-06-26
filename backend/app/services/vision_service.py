@@ -1,4 +1,4 @@
-
+# backend/app/services/vision_service.py
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -26,14 +26,17 @@ def analyze_frame(image_bytes):
     results = mp_face_mesh.process(rgb)
 
     response = {
-        "face_detected": False,
-        "multiple_faces": False,
-        "eye_contact": True,
-        "warning": ""
-    }
+    "face_detected": False,
+    "multiple_faces": False,
+    "eye_contact": True,
+    "head_direction": "center",
+    "warning": "",
+    "violation_type": None
+}
 
     if not results.multi_face_landmarks:
         response["face_detected"] = False
+        response["head_direction"]="none"
         response["warning"] = "No face detected"
         return response
 
@@ -42,6 +45,7 @@ def analyze_frame(image_bytes):
 
     if len(faces) > 1:
         response["multiple_faces"] = True
+        response["head_direction"]="multiple"
         response["warning"] = "Multiple people detected"
         return response
 
@@ -63,13 +67,15 @@ def analyze_frame(image_bytes):
 # 🔥 RIGHT SIDE DETECTION (LESS STRICT)
     if ratio > 1.55 or nose.x > 0.65:
         response["eye_contact"] = False
-        response["warning"] = "Looking right (head)"
+        response["head_direction"] = "right"
+        response["warning"] = "Looking right"
         return response
 
     # 🔥 LEFT SIDE DETECTION (LESS STRICT)
     elif ratio < 0.65 or nose.x < 0.35:
         response["eye_contact"] = False
-        response["warning"] = "Looking left (head)"
+        response["head_direction"] = "left"
+        response["warning"] = "Looking left"
         return response
 
     # ===============================
@@ -90,10 +96,12 @@ def analyze_frame(image_bytes):
 
     if avg_x < 0.35:
         response["eye_contact"] = False
-        response["warning"] = "Looking left (eyes)"
+        response["head_direction"] = "left"
+        response["warning"] = "Looking left"
 
     elif avg_x > 0.65:
         response["eye_contact"] = False
-        response["warning"] = "Looking right (eyes)"
+        response["head_direction"] = "right"
+        response["warning"] = "Looking right"
 
     return response

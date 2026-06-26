@@ -56,7 +56,7 @@ async def get_report(interview_id: str, authorization: str = Header(None)):
             "strengths": report.get("strengths"),
             "improvements": report.get("improvements"),
             "recommendation": report.get("recommendation"),
-
+             "total_violations": report.get("total_violations"),
             "total_questions": report.get("total_questions"),
             "answered_questions": report.get("answered_questions"),
         }

@@ -192,10 +192,40 @@ const ReportModal = ({ report, onClose }) => {
             <div style={{ fontSize: "0.63rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "#374151", marginBottom: 12 }}>
               Score Breakdown
             </div>
-            <ScoreRow label="Technical"     value={report.technical_score}     color="#34d399" delay={0.05} />
-            <ScoreRow label="Communication" value={report.communication_score} color="#60a5fa" delay={0.15} />
-            <ScoreRow label="Overall"       value={report.overall_score}       color="#a78bfa" delay={0.25} />
+            <ScoreRow
+  label="Technical"
+  value={report.technical_score}
+  color="#34d399"
+  delay={0.05}
+/>
 
+<ScoreRow
+  label="Communication"
+  value={report.communication_score}
+  color="#60a5fa"
+  delay={0.10}
+/>
+
+<ScoreRow
+  label="Grammar"
+  value={report.grammar_score}
+  color="#f59e0b"
+  delay={0.15}
+/>
+
+<ScoreRow
+  label="Behavior"
+  value={report.behavior_score}
+  color="#ec4899"
+  delay={0.20}
+/>
+
+<ScoreRow
+  label="Overall"
+  value={report.overall_score}
+  color="#a78bfa"
+  delay={0.25}
+/>
             {report.total_questions > 0 && (
               <div style={{
                 marginTop: 16, padding: "12px 13px",

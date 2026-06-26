@@ -81,9 +81,10 @@ async def signup(data: SignupRequest):
         }).execute()
 
         return {
-            "message": "Signup successful",
-            "user_id": user_id,
-        }
+    "message": "Signup successful",
+    "session": auth_response.session,
+    "user": auth_response.user
+            }
 
     except Exception as e:
         print("ERROR:", str(e))

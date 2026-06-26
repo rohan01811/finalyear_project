@@ -99,17 +99,17 @@ const AppCard = ({ app, loadingId, onStartInterview, onViewReport, index }) => {
         {job.location && (
           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <span style={{ fontSize: 12 }}>📍</span>
-            <span style={{ fontSize: "0.76rem", color: "#374151" }}>{job.location}</span>
+            <span style={{ fontSize: "0.76rem", color: "#cbd5e1" }}>{job.location}</span>
           </div>
         )}
         {job.type && (
           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <span style={{ fontSize: 12 }}>💼</span>
-            <span style={{ fontSize: "0.76rem", color: "#374151" }}>{job.type}</span>
+            <span style={{ fontSize: "0.76rem", color: "#cbd5e1" }}>{job.type}</span>
           </div>
         )}
         {!job.location && !job.type && (
-          <span style={{ fontSize: "0.76rem", color: "#1f2937" }}>No additional details</span>
+          <span style={{ fontSize: "0.76rem", color: "#94a3b8" }}>No additional details</span>
         )}
       </div>
 
@@ -234,7 +234,7 @@ const StatsBar = ({ applications }) => {
             fontSize: "1.3rem", fontWeight: 700, color,
             fontFamily: "'JetBrains Mono', monospace"
           }}>{value}</div>
-          <div style={{ fontSize: "0.68rem", color: "#374151", textTransform: "uppercase",
+          <div style={{ fontSize: "0.68rem", color: "#cbd5e1", textTransform: "uppercase",
             letterSpacing: "0.1em", marginTop: 2 }}>{label}</div>
         </div>
       ))}
@@ -330,7 +330,7 @@ function Applications() {
           </span>
           <span style={{
             fontSize: "0.68rem", fontWeight: 600, textTransform: "uppercase",
-            letterSpacing: "0.1em", color: "#374151",
+            letterSpacing: "0.1em", color: "#cbd5e1",
             fontFamily: "'JetBrains Mono', monospace"
           }}>
             {applications.length} total
@@ -345,14 +345,14 @@ function Applications() {
 
             {/* Page heading */}
             <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: "0.68rem", textTransform: "uppercase",
-                letterSpacing: "0.14em", color: "#1f2937", marginBottom: 5 }}>
+              <div style={{ fontSize: "1.25rem", textTransform: "uppercase",
+                letterSpacing: "0.14em", color: "#cbd5e1", marginBottom: 5 }}>
                 Candidate Dashboard
               </div>
               <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#e2e8f0" }}>
                 My Applications
               </h1>
-              <p style={{ fontSize: "0.82rem", color: "#374151", marginTop: 4 }}>
+              <p style={{ fontSize: "0.82rem", color: "#cbd5e1", marginTop: 4 }}>
                 Track your job applications and start or review interviews below.
               </p>
             </div>
@@ -376,7 +376,7 @@ function Applications() {
                       style={{
                         padding: "5px 14px", borderRadius: 999, border: `1px solid ${active ? cfg.border : "rgba(255,255,255,0.08)"}`,
                         background: active ? cfg.bg : "transparent",
-                        color: active ? cfg.color : "#374151",
+                        color: active ? cfg.color : "#cbd5e1",
                         fontSize: "0.75rem", fontWeight: 600,
                         textTransform: "capitalize", fontFamily: "'Inter', sans-serif",
                         cursor: "pointer", letterSpacing: "0.04em",
@@ -416,10 +416,10 @@ function Applications() {
             {!loading && filtered.length === 0 && (
               <div style={{ textAlign: "center", padding: "70px 20px" }}>
                 <div style={{ fontSize: "2.2rem", marginBottom: 12 }}>📭</div>
-                <p style={{ fontSize: "0.95rem", fontWeight: 600, color: "#374151" }}>
+                <p style={{ fontSize: "0.95rem", fontWeight: 600, color: "#cbd5e1" }}>
                   {filter === "all" ? "No applications yet" : `No ${filter.replace("_", " ")} applications`}
                 </p>
-                <p style={{ fontSize: "0.8rem", marginTop: 4, color: "#1f2937" }}>
+                <p style={{ fontSize: "0.8rem", marginTop: 4, color: "#94a3b8" }}>
                   {filter === "all" ? "Apply to jobs to see them here." : "Try a different filter."}
                 </p>
               </div>

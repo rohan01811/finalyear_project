@@ -1,6 +1,8 @@
+# backend/app/services/evaluation_service.py
 import numpy as np
 import re
 from app.services.bert_service import get_bert_embedding
+
 
 
 def keyword_score(answer, ideal):
@@ -23,7 +25,6 @@ def evaluate_answer(candidate_answer, ideal_answer):
     keyword_overlap = keyword_score(candidate_answer, ideal_answer)
 
     return (0.7 * semantic_score) + (0.3 * keyword_overlap)
-
 
 def decide_next_difficulty(current, score):
     if score > 0.8:

@@ -147,9 +147,17 @@ async def video_socket(websocket: WebSocket, session_id: str = Query(...)):
     total_violations = session.get('total_violations', 0)      # full interview
 
     # 🧠 Control logic
-    last_violation_time = 0
-    COOLDOWN = 2   # seconds
-    prev_violation_state = False
+    # Current violation state
+    violation_active = False
+
+# Which violation is active?
+    current_violation = None
+
+# When did it start?
+    violation_start_time = None
+
+# Count only if violation lasts this long
+    MIN_VIOLATION_DURATION = 2  # seconds
 
     try:
         while True:
@@ -159,29 +167,63 @@ async def video_socket(websocket: WebSocket, session_id: str = Query(...)):
             current_time = time.time()
 
             # 🚨 Detect violation
-            is_violation = (not result["eye_contact"] or result["multiple_faces"])
+            # Determine current violation type
+            event = None
 
-            # ✅ Count ONLY new violations + cooldown
-            if (
-                is_violation 
-                and not prev_violation_state 
-                and (current_time - last_violation_time > COOLDOWN)
-            ):
-                violation_count += 1
-                total_violations += 1
-                last_violation_time = current_time
+            if result["multiple_faces"]:
+                event = "multiple_faces"
 
-            # 🔁 Update state
-            prev_violation_state = is_violation
+            elif not result["face_detected"]:
+                event = "face_missing"
+
+            elif result["head_direction"] == "left":
+                event = "looking_left"
+
+            elif result["head_direction"] == "right":
+                event = "looking_right"
+
+            # ===============================
+# STATE MACHINE
+# ===============================
+
+            if event is None:
+                # Candidate is behaving normally again
+                violation_active = False
+                current_violation = None
+                violation_start_time = None
+
+            else:
+                # A violation exists
+
+                if current_violation != event:
+                    # New violation started
+                    current_violation = event
+                    violation_start_time = current_time
+                    violation_active = False
+
+                else:
+                    # Same violation is continuing
+                    if (
+                        not violation_active
+                        and current_time - violation_start_time >= MIN_VIOLATION_DURATION
+                    ):
+                        violation_count += 1
+                        total_violations += 1
+
+                        # Update session immediately
+                        session["violation_count"] = violation_count
+                        session["total_violations"] = total_violations
+
+                        violation_active = True
+
+                        print(f"✅ Violation counted: {event}")    
 
             # 📊 Log every 30 seconds
             if current_time - last_log > 30:
-                print(f"📊 30s Report → Current Q Violations: {violation_count}, Total: {total_violations}")
-
-                # ✅ Store periodically (not every frame)
-                session['violation_count'] = violation_count
-                session['total_violations'] = total_violations
-
+                print(
+                    f"📊 30s Report → Current Q Violations: {violation_count}, Total: {total_violations}"
+                )
+            
                 last_log = current_time
 
             # 📡 Send result to frontend
@@ -284,9 +326,9 @@ async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
                  print("Send completion message failed:", e)
 
                 supabase.table("interviews").update({
-                        "status": "completed"                     
-
-                 }).eq("id", interview_id).execute()
+                    "status": "completed",
+                    "total_violations": session.get("total_violations", 0)
+                }).eq("id", interview_id).execute()
 
                 supabase.table("applications").update({
                             "status": "interview_done"

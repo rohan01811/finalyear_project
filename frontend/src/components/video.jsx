@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import "./video.css";
 
-const Video = ({ triggerWarning,isActive }) => {
+const Video = ({ triggerWarning,isActive,autoPlay,playsInline }) => {
   const { sessionId } = useParams();   // ✅ Get session ID from route
 
   const videoRef = useRef(null);
@@ -175,8 +175,14 @@ useEffect(() => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+context.save();
 
+context.translate(canvas.width, 0);
+context.scale(-1, 1);
+
+context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+context.restore();
     canvas.toBlob(
       async (blob) => {
         if (blob) {
@@ -200,13 +206,16 @@ useEffect(() => {
       </div>
 
       <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        width="700px"
-        height="500px"
-        style={{ border: "1px solid black" }}
-      ></video>
+    ref={videoRef}
+    autoPlay
+    playsInline
+    width="700px"
+    height="500px"
+    style={{
+        border: "1px solid black",
+        transform: "scaleX(-1)"
+    }}
+></video>
 
       <canvas
         ref={canvasRef}

@@ -104,7 +104,7 @@ async def run_evaluation(interview_id: str):
         candidate_id = interview_data.get("candidate_id")
         application_id = interview_data.get("application_id")
         job_id = interview_data.get("job_id")
-        
+        total_violations = interview_data.get("total_violations", 0)
         grammar_avg = sum(grammar_scores) / len(grammar_scores)
         # 📄 Insert report
         supabase.table("reports").insert({
@@ -120,7 +120,7 @@ async def run_evaluation(interview_id: str):
                "grammar_score": grammar_avg,
                 "confidence_avg": confidence_avg,
                 "behavior_score": behavior_avg,
-
+                 "total_violations": total_violations,
                 "strengths": ", ".join(strengths),
                 "improvements": ", ".join(improvements),
                 "recommendation": recommendation,
@@ -143,6 +143,7 @@ async def run_evaluation(interview_id: str):
             "technical": tech,
             "communication": comm,
             "overall": adjusted_overall,
+            
             "recommendation": recommendation
         }
 

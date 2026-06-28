@@ -18,7 +18,7 @@ class DeepEvaluationService:
     @staticmethod
     def grammar_score(ans):
         matches = grammar_tool.check(ans)
-        return max(0, 100 - len(matches) * 2)
+        return max(0, 100 - len(matches) * 3)
 
     @staticmethod
     def readability_score(ans):

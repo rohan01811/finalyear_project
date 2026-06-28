@@ -4,7 +4,7 @@ def build_question_prompt(
     jd: str,
     experience: int,
     interview_type: str,
-    count: int = 6
+    count: int = 4
 ):
     return f"""
 You are a professional AI interviewer.

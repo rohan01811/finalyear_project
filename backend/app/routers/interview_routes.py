@@ -147,17 +147,17 @@ async def video_socket(websocket: WebSocket, session_id: str = Query(...)):
     total_violations = session.get('total_violations', 0)      # full interview
 
     # 🧠 Control logic
-    # Current violation state
-    violation_active = False
-
-# Which violation is active?
+    # Current active violation
     current_violation = None
 
-# When did it start?
+# When current violation started
     violation_start_time = None
 
-# Count only if violation lasts this long
-    MIN_VIOLATION_DURATION = 2  # seconds
+# Prevent counting same violation repeatedly
+    violation_counted = False
+
+# Candidate must violate continuously for 2 seconds
+    MIN_VIOLATION_DURATION = 2
 
     try:
         while True:
@@ -183,41 +183,52 @@ async def video_socket(websocket: WebSocket, session_id: str = Query(...)):
                 event = "looking_right"
 
             # ===============================
-# STATE MACHINE
+# STABLE VIOLATION DETECTION
 # ===============================
 
+# Treat left/right as same category
+            if event in ["looking_left", "looking_right"]:
+                event = "looking_away"
+
             if event is None:
-                # Candidate is behaving normally again
-                violation_active = False
+
+    # Candidate returned to normal
                 current_violation = None
                 violation_start_time = None
+                violation_counted = False
 
             else:
-                # A violation exists
 
+    # New violation started
                 if current_violation != event:
-                    # New violation started
+
                     current_violation = event
                     violation_start_time = current_time
-                    violation_active = False
+                    violation_counted = False
 
                 else:
-                    # Same violation is continuing
+
+        # Same violation continues
+                    duration = current_time - violation_start_time
+
+        # Count only once after 2 seconds
                     if (
-                        not violation_active
-                        and current_time - violation_start_time >= MIN_VIOLATION_DURATION
+                       duration >= MIN_VIOLATION_DURATION
+                        and not violation_counted
                     ):
+
                         violation_count += 1
                         total_violations += 1
 
-                        # Update session immediately
                         session["violation_count"] = violation_count
                         session["total_violations"] = total_violations
 
-                        violation_active = True
+                        violation_counted = True
 
-                        print(f"✅ Violation counted: {event}")    
-
+                        print(
+                            f"✅ Violation counted: {event} "
+                            f"(duration={duration:.1f}s)"
+                        )
             # 📊 Log every 30 seconds
             if current_time - last_log > 30:
                 print(
@@ -327,7 +338,7 @@ async def interview_socket(websocket: WebSocket, session_id: str = Query(...)):
 
                 supabase.table("interviews").update({
                     "status": "completed",
-                    "total_violations": session.get("total_violations", 0)
+                    "total_violations": session.get("total_violations", 0) 
                 }).eq("id", interview_id).execute()
 
                 supabase.table("applications").update({

@@ -45,6 +45,8 @@ async def get_report(interview_id: str, authorization: str = Header(None)):
         return {
             "technical_score": report.get("technical_score"),
             "communication_score": report.get("communication_score"),
+            "grammar_score": report.get("grammar_score"),
+            "behavior_score": report.get("behavior_score"),
             "overall_score": report.get("overall_score"),
 
             "job_title": job.get("title"),
